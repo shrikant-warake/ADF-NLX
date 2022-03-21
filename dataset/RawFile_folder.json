@@ -1,0 +1,26 @@
+{
+	"name": "RawFile_folder",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_NLXX_Container",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Unzip Data"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "RawFiles",
+				"fileSystem": "nlxpracticesfiles"
+			},
+			"compression": {
+				"type": "ZipDeflate",
+				"level": "Optimal"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

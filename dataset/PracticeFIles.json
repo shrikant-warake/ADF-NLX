@@ -1,0 +1,67 @@
+{
+	"name": "PracticeFIles",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_NLXX_Container",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"unziped_PracticeId": {
+				"type": "string"
+			},
+			"filename": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Unzip Data"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().filename",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@concat('UnzipedFiles/',dataset().unziped_PracticeId)",
+					"type": "Expression"
+				},
+				"fileSystem": "nlxpracticesfiles"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

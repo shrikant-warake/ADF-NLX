@@ -1,0 +1,201 @@
+{
+	"name": "Load FIles to stg tables_Child_01",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get file list from practice Folder",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "practiceid",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "GetFIleNames",
+						"type": "DatasetReference",
+						"parameters": {
+							"PracticeFolderName": {
+								"value": "@pipeline().parameters.unzippedPracticeFolderName",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "practiceid",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "PracticeID",
+					"value": {
+						"value": "@pipeline().parameters.unzippedPracticeFolderName",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "access files",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get file list from practice Folder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get file list from practice Folder').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "getColumnMapping",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "select * \n from [dbo].[PracticeDataIn] \n where practiceid=  '@{replace(variables('PracticeID'),'.zip','')}'\n  and FileName='@{item().name}'",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "Config_server_db",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "load file to stg",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "getColumnMapping",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"value": "@activity('getColumnMapping').output.firstRow.MappingJason",
+									"type": "Expression"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "PracticeFIles",
+									"type": "DatasetReference",
+									"parameters": {
+										"unziped_PracticeId": {
+											"value": "@variables('PracticeID')",
+											"type": "Expression"
+										},
+										"filename": {
+											"value": "@activity('getColumnMapping').output.firstRow.FileName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "stgTables",
+									"type": "DatasetReference",
+									"parameters": {
+										"schema": {
+											"value": "@activity('getColumnMapping').output.firstRow.STG_TableSchema",
+											"type": "Expression"
+										},
+										"tableName": {
+											"value": "@activity('getColumnMapping').output.firstRow.STG_TableName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"unzippedPracticeFolderName": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"PracticeID": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-19T15:27:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,43 @@
+{
+	"name": "Config_server_db",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "NLX_Config_DB",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "DEV_Server"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "PracticeID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "FileName",
+				"type": "varchar"
+			},
+			{
+				"name": "STG_TableSchema",
+				"type": "varchar"
+			},
+			{
+				"name": "STG_TableName",
+				"type": "varchar"
+			},
+			{
+				"name": "MappingJason",
+				"type": "varchar"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

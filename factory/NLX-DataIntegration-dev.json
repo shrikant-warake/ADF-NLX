@@ -1,0 +1,9 @@
+{
+	"name": "NLX-DataIntegration-dev",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "38b07545-e5b5-4596-8870-69d363dfbe7c",
+		"tenantId": "bfca51db-434d-4fe2-a0f2-870c30078dae"
+	}
+}

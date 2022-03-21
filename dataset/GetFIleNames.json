@@ -1,0 +1,30 @@
+{
+	"name": "GetFIleNames",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS_NLXX_Container",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"PracticeFolderName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Unzip Data"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@concat('UnzipedFiles/',dataset().PracticeFolderName)",
+					"type": "Expression"
+				},
+				"fileSystem": "nlxpracticesfiles"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
