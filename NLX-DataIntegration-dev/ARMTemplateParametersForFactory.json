@@ -1,0 +1,21 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "NLX-DataIntegration-dev"
+		},
+		"ADLS_NLXX_Container_accountKey": {
+			"value": ""
+		},
+		"Dev_server_connectionString": {
+			"value": ""
+		},
+		"NLX_Config_DB_connectionString": {
+			"value": ""
+		},
+		"ADLS_NLXX_Container_properties_typeProperties_url": {
+			"value": "https://nlxhcdata.dfs.core.windows.net"
+		}
+	}
+}

@@ -1,0 +1,844 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "NLX-DataIntegration-dev"
+		},
+		"ADLS_NLXX_Container_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ADLS_NLXX_Container'"
+		},
+		"Dev_server_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Dev_server'"
+		},
+		"NLX_Config_DB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'NLX_Config_DB'"
+		},
+		"ADLS_NLXX_Container_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://nlxhcdata.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_NLXX_Container')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ADLS_NLXX_Container_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ADLS_NLXX_Container_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Dev_server')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('Dev_server_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/NLX_Config_DB')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('NLX_Config_DB_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Config_server_db')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "NLX_Config_DB",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "DEV_Server"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "PracticeID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "FileName",
+						"type": "varchar"
+					},
+					{
+						"name": "STG_TableSchema",
+						"type": "varchar"
+					},
+					{
+						"name": "STG_TableName",
+						"type": "varchar"
+					},
+					{
+						"name": "MappingJason",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/NLX_Config_DB')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/GetFIleNames')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ADLS_NLXX_Container",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"PracticeFolderName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Unzip Data"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@concat('UnzipedFiles/',dataset().PracticeFolderName)",
+							"type": "Expression"
+						},
+						"fileSystem": "nlxpracticesfiles"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ADLS_NLXX_Container')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PracticeFIles')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ADLS_NLXX_Container",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"unziped_PracticeId": {
+						"type": "string"
+					},
+					"filename": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Unzip Data"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('UnzipedFiles/',dataset().unziped_PracticeId)",
+							"type": "Expression"
+						},
+						"fileSystem": "nlxpracticesfiles"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ADLS_NLXX_Container')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RawFile_folder')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ADLS_NLXX_Container",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Unzip Data"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "RawFiles",
+						"fileSystem": "nlxpracticesfiles"
+					},
+					"compression": {
+						"type": "ZipDeflate",
+						"level": "Optimal"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ADLS_NLXX_Container')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Unzip_Folder')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ADLS_NLXX_Container",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Unzip Data"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "UnzipedFiles",
+						"fileSystem": "nlxpracticesfiles"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ADLS_NLXX_Container')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/stgTables')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "NLX_Config_DB",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"schema": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"tableName": {
+						"type": "string",
+						"defaultValue": "stg_Charges_168"
+					}
+				},
+				"folder": {
+					"name": "DEV_Server"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().tableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/NLX_Config_DB')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Load FIles to stg tables_Child_01')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get file list from practice Folder",
+						"type": "GetMetadata",
+						"dependsOn": [
+							{
+								"activity": "practiceid",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "GetFIleNames",
+								"type": "DatasetReference",
+								"parameters": {
+									"PracticeFolderName": {
+										"value": "@pipeline().parameters.unzippedPracticeFolderName",
+										"type": "Expression"
+									}
+								}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "BinaryReadSettings"
+							}
+						}
+					},
+					{
+						"name": "practiceid",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "PracticeID",
+							"value": {
+								"value": "@pipeline().parameters.unzippedPracticeFolderName",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "access files",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get file list from practice Folder",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get file list from practice Folder').output.childItems",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "getColumnMapping",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "select * \n from [dbo].[PracticeDataIn] \n where practiceid=  '@{replace(variables('PracticeID'),'.zip','')}'\n  and FileName='@{item().name}'",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "Config_server_db",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									}
+								},
+								{
+									"name": "load file to stg",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "getColumnMapping",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"value": "@activity('getColumnMapping').output.firstRow.MappingJason",
+											"type": "Expression"
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "PracticeFIles",
+											"type": "DatasetReference",
+											"parameters": {
+												"unziped_PracticeId": {
+													"value": "@variables('PracticeID')",
+													"type": "Expression"
+												},
+												"filename": {
+													"value": "@activity('getColumnMapping').output.firstRow.FileName",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "stgTables",
+											"type": "DatasetReference",
+											"parameters": {
+												"schema": {
+													"value": "@activity('getColumnMapping').output.firstRow.STG_TableSchema",
+													"type": "Expression"
+												},
+												"tableName": {
+													"value": "@activity('getColumnMapping').output.firstRow.STG_TableName",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"unzippedPracticeFolderName": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"PracticeID": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "unzip and stg Load"
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-03-22T18:19:16Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/GetFIleNames')]",
+				"[concat(variables('factoryId'), '/datasets/Config_server_db')]",
+				"[concat(variables('factoryId'), '/datasets/PracticeFIles')]",
+				"[concat(variables('factoryId'), '/datasets/stgTables')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Unziping files')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Zip Files",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "RawFile_folder",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "BinaryReadSettings"
+							}
+						}
+					},
+					{
+						"name": "Unziping one by one practice",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "get only zip files",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('get only zip files').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Unzip folder",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "BinarySource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"wildcardFolderPath": "RawFiles",
+												"wildcardFileName": {
+													"value": "@item().name",
+													"type": "Expression"
+												},
+												"deleteFilesAfterCompletion": false
+											},
+											"formatSettings": {
+												"type": "BinaryReadSettings",
+												"compressionProperties": {
+													"type": "ZipDeflateReadSettings"
+												}
+											}
+										},
+										"sink": {
+											"type": "BinarySink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "RawFile_folder",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "Unzip_Folder",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									]
+								}
+							]
+						}
+					},
+					{
+						"name": "get only zip files",
+						"type": "Filter",
+						"dependsOn": [
+							{
+								"activity": "Get Zip Files",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get Zip Files').output.childItems",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@contains(item().name,'.zip')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "unzip and stg Load"
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-03-22T13:01:00Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/RawFile_folder')]",
+				"[concat(variables('factoryId'), '/datasets/Unzip_Folder')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Load FIles to stg tables_Parent')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get List of Unziped Files",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "Unzip_Folder",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "BinaryReadSettings"
+							}
+						}
+					},
+					{
+						"name": "pass practice id to child",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get List of Unziped Files",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get List of Unziped Files').output.childItems",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Execute Load FIles to stg tables_Child_01",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Load FIles to stg tables_Child_01",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"unzippedPracticeFolderName": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "unzip and stg Load"
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-03-22T11:39:11Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Unzip_Folder')]",
+				"[concat(variables('factoryId'), '/pipelines/Load FIles to stg tables_Child_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/STG Data Load Process-Master')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Unzipping",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Unziping files",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Loading Unziping Files",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Unzipping",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Load FIles to stg tables_Parent",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "unzip and stg Load"
+				},
+				"annotations": [],
+				"lastPublishTime": "2022-03-22T11:39:11Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Unziping files')]",
+				"[concat(variables('factoryId'), '/pipelines/Load FIles to stg tables_Parent')]"
+			]
+		}
+	]
+}

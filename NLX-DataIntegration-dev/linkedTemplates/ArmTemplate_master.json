@@ -1,0 +1,70 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "NLX-DataIntegration-dev"
+		},
+		"ADLS_NLXX_Container_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ADLS_NLXX_Container'"
+		},
+		"Dev_server_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Dev_server'"
+		},
+		"NLX_Config_DB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'NLX_Config_DB'"
+		},
+		"ADLS_NLXX_Container_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://nlxhcdata.dfs.core.windows.net"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "NLX-DataIntegration-dev_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"ADLS_NLXX_Container_accountKey": {
+						"value": "[parameters('ADLS_NLXX_Container_accountKey')]"
+					},
+					"Dev_server_connectionString": {
+						"value": "[parameters('Dev_server_connectionString')]"
+					},
+					"NLX_Config_DB_connectionString": {
+						"value": "[parameters('NLX_Config_DB_connectionString')]"
+					},
+					"ADLS_NLXX_Container_properties_typeProperties_url": {
+						"value": "[parameters('ADLS_NLXX_Container_properties_typeProperties_url')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
