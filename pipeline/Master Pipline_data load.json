@@ -1,5 +1,5 @@
 {
-	"name": "STG Data Load Process",
+	"name": "Master Pipline_data load",
 	"properties": {
 		"activities": [
 			{
