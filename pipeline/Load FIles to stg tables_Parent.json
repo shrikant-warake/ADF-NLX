@@ -74,8 +74,11 @@
 				}
 			}
 		],
+		"folder": {
+			"name": "unzip and stg Load"
+		},
 		"annotations": [],
-		"lastPublishTime": "2022-03-19T08:30:23Z"
+		"lastPublishTime": "2022-03-22T11:39:11Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

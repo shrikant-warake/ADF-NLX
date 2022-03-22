@@ -37,7 +37,7 @@
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "Get Zip Files",
+						"activity": "get only zip files",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -46,7 +46,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Get Zip Files').output.childItems",
+						"value": "@activity('get only zip files').output.value",
 						"type": "Expression"
 					},
 					"isSequential": true,
@@ -106,10 +106,36 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "get only zip files",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Get Zip Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Zip Files').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@contains(item().name,'.zip')",
+						"type": "Expression"
+					}
+				}
 			}
 		],
+		"folder": {
+			"name": "unzip and stg Load"
+		},
 		"annotations": [],
-		"lastPublishTime": "2022-03-19T15:29:36Z"
+		"lastPublishTime": "2022-03-22T13:01:00Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

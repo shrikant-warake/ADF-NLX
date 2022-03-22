@@ -1,0 +1,46 @@
+{
+	"name": "STG Data Load Process",
+	"properties": {
+		"activities": [
+			{
+				"name": "Unzipping",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Unziping files",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Loading Unziping Files",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Unzipping",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Load FIles to stg tables_Parent",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "unzip and stg Load"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-03-22T11:39:11Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
