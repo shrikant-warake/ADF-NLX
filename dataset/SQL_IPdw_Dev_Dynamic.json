@@ -1,0 +1,34 @@
+{
+	"name": "SQL_IPdw_Dev_Dynamic",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSql_ipdw_Dev",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"SinkTable_Schema": {
+				"type": "string"
+			},
+			"SinkTable": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Azure SQL-ipdw-bi-dev"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().SinkTable_Schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().SinkTable",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

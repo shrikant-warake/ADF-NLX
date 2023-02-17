@@ -1,0 +1,85 @@
+{
+	"name": "ip_raw_data",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BS_ivtdata",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "IP Data"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "IPS.csv",
+				"folderPath": "IP",
+				"container": "idata-for-dw"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "PART_NO",
+				"type": "String"
+			},
+			{
+				"name": "CONTRACT",
+				"type": "String"
+			},
+			{
+				"name": "PART_DESCRIPTION",
+				"type": "String"
+			},
+			{
+				"name": "REVISION_NO",
+				"type": "String"
+			},
+			{
+				"name": "SERIAL_NO",
+				"type": "String"
+			},
+			{
+				"name": "LOT_BATCH_NO",
+				"type": "String"
+			},
+			{
+				"name": "UOM",
+				"type": "String"
+			},
+			{
+				"name": "QUANTITY_IN_HAND",
+				"type": "String"
+			},
+			{
+				"name": "INVENTORY_VALUE",
+				"type": "String"
+			},
+			{
+				"name": "TOTAL_INVENTORY_VALUE",
+				"type": "String"
+			},
+			{
+				"name": "PART_CLASS",
+				"type": "String"
+			},
+			{
+				"name": "MANUFACTURING_TYPE",
+				"type": "String"
+			},
+			{
+				"name": "IFS_LOCATION_NO",
+				"type": "String"
+			},
+			{
+				"name": "RECEIPT_DATE",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

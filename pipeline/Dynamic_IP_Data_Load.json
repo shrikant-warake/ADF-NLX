@@ -1,0 +1,221 @@
+{
+	"name": "Dynamic_IP_Data_Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Retrive All Files from IP",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "IPdata_Directory",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Load File from IP",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Retrive All Files from IP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Retrive All Files from IP').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Get Table Mapping",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "select SourceFile,SinkTable_Schema,SinkTable,JSON_Mapping from Table_Mapping where SourceFile='@{item().name} '",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "TableMapping",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "Load data into Landing tables",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Get Table Mapping",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"preCopyScript": "truncate table dbo.LAN_INVENTORY_PART_V2",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"value": "@json(activity('Get Table Mapping').output.firstRow.JSON_Mapping)",
+									"type": "Expression"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "IP_Raw_Data_DynamicFileName",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@activity('Get Table Mapping').output.firstRow.sourceFile",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SQL_IPdw_Dev_Dynamic",
+									"type": "DatasetReference",
+									"parameters": {
+										"SinkTable_Schema": {
+											"value": "@activity('Get Table Mapping').output.firstRow.SinkTable_Schema",
+											"type": "Expression"
+										},
+										"SinkTable": {
+											"value": "@activity('Get Table Mapping').output.firstRow.SinkTable",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Move File to archive",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Load data into Landing tables",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"deleteFilesAfterCompletion": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "IP_Data_Source",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": "@activity('Get Table Mapping').output.firstRow.sourceFile"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "IP_Data_Archive",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "IP data load"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-02-08T12:41:20Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,92 @@
+{
+	"name": "AzureSql_ipdw_dev",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSql_ipdw_Dev",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Azure SQL-ipdw-bi-dev"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "LAND_IPV_ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "PART_NO",
+				"type": "varchar"
+			},
+			{
+				"name": "CONTRACT",
+				"type": "varchar"
+			},
+			{
+				"name": "PART_DESCRIPTION",
+				"type": "varchar"
+			},
+			{
+				"name": "REVISION_NO",
+				"type": "varchar"
+			},
+			{
+				"name": "SERIAL_NO",
+				"type": "varchar"
+			},
+			{
+				"name": "LOT_BATCH_NO",
+				"type": "varchar"
+			},
+			{
+				"name": "UOM",
+				"type": "varchar"
+			},
+			{
+				"name": "QUANTITY_IN_HAND",
+				"type": "varchar"
+			},
+			{
+				"name": "INVENTORY_VALUE",
+				"type": "varchar"
+			},
+			{
+				"name": "TOTAL_INVENTORY_VALUE",
+				"type": "varchar"
+			},
+			{
+				"name": "PART_CLASS",
+				"type": "varchar"
+			},
+			{
+				"name": "MANUFACTURING_TYPE",
+				"type": "varchar"
+			},
+			{
+				"name": "IFS_LOCATION_NO",
+				"type": "varchar"
+			},
+			{
+				"name": "RECEIPT_DATE",
+				"type": "varchar"
+			},
+			{
+				"name": "LAND_PROCESS_DATE",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "LAND_PROCESS_FLAG",
+				"type": "bit"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "LAN_INVENTORY_PART_V2"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

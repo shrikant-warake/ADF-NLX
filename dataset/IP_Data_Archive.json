@@ -1,0 +1,22 @@
+{
+	"name": "IP_Data_Archive",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BS_ivtdata",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ArchiveProcess"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": "IP",
+				"container": "idata-for-dw-archive"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

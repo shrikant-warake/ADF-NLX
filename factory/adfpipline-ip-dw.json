@@ -1,0 +1,9 @@
+{
+	"name": "adfpipline-ip-dw",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "cb58640c-5c0b-4c8e-a8dd-e77c29c4a504",
+		"tenantId": "fbe2afe7-4695-4942-9488-6ca1dfdf42db"
+	}
+}
